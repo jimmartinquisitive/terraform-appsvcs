@@ -1,0 +1,100 @@
+### Integrating with Azure DevOps Pipelines
+
+When integrating with ADO, you can call this module from your root module. Ensure your pipeline’s Terraform task passes in the required variables (for example via a `terraform.tfvars` file or pipeline variable group). Your pipeline YAML might look like this:
+
+trigger:
+  - main
+
+stages:
+  - stage: Dev
+    displayName: 'Dev Stage'
+    jobs:
+      - job: TerraformDeployDev
+        displayName: 'Terraform Deployment to Dev'
+        pool:
+          vmImage: 'ubuntu-latest'
+        steps:
+          - task: TerraformInstaller@1
+            inputs:
+              terraformVersion: '1.3.0'
+          - script: |
+              terraform init -backend-config=dev.backend.config
+            displayName: 'Terraform Init (Dev)'
+          - script: |
+              terraform plan -var-file=dev.tfvars
+            displayName: 'Terraform Plan (Dev)'
+          - script: |
+              terraform apply -auto-approve -var-file=dev.tfvars
+            displayName: 'Terraform Apply (Dev)'
+
+  - stage: Test
+    displayName: 'Test Stage'
+    dependsOn: Dev
+    jobs:
+      # Manual approval job before deploying to Test
+      - job: ApprovalForTest
+        displayName: 'Manual Approval for Test'
+        pool:
+          vmImage: 'ubuntu-latest'
+        steps:
+          - task: ManualValidation@0
+            inputs:
+              instructions: 'Please review the Dev deployment and approve deployment to the Test environment.'
+              notifyUsers: 'user1@example.com'  # Replace with actual approver(s)
+            timeoutInMinutes: 60
+
+      # Terraform deployment job for Test stage; depends on the approval job.
+      - job: TerraformDeployTest
+        displayName: 'Terraform Deployment to Test'
+        dependsOn: ApprovalForTest
+        pool:
+          vmImage: 'ubuntu-latest'
+        steps:
+          - task: TerraformInstaller@1
+            inputs:
+              terraformVersion: '1.3.0'
+          - script: |
+              terraform init -backend-config=test.backend.config
+            displayName: 'Terraform Init (Test)'
+          - script: |
+              terraform plan -var-file=test.tfvars
+            displayName: 'Terraform Plan (Test)'
+          - script: |
+              terraform apply -auto-approve -var-file=test.tfvars
+            displayName: 'Terraform Apply (Test)'
+
+  - stage: Prod
+    displayName: 'Prod Stage'
+    dependsOn: Test
+    jobs:
+      # Manual approval job before deploying to Prod
+      - job: ApprovalForProd
+        displayName: 'Manual Approval for Prod'
+        pool:
+          vmImage: 'ubuntu-latest'
+        steps:
+          - task: ManualValidation@0
+            inputs:
+              instructions: 'Please review the Test deployment and approve deployment to the Production environment.'
+              notifyUsers: 'user2@example.com'  # Replace with actual approver(s)
+            timeoutInMinutes: 60
+
+      # Terraform deployment job for Prod stage; depends on the approval job.
+      - job: TerraformDeployProd
+        displayName: 'Terraform Deployment to Prod'
+        dependsOn: ApprovalForProd
+        pool:
+          vmImage: 'ubuntu-latest'
+        steps:
+          - task: TerraformInstaller@1
+            inputs:
+              terraformVersion: '1.3.0'
+          - script: |
+              terraform init -backend-config=prod.backend.config
+            displayName: 'Terraform Init (Prod)'
+          - script: |
+              terraform plan -var-file=prod.tfvars
+            displayName: 'Terraform Plan (Prod)'
+          - script: |
+              terraform apply -auto-approve -var-file=prod.tfvars
+            displayName: 'Terraform Apply (Prod)'
