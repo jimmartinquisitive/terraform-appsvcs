@@ -58,3 +58,9 @@ variable "app_service_settings" {
   type        = map(string)
   default     = {}
 }
+
+ variable "app_service_environment_id" {
+   description = "ID of the App Service Environment (if applicable)"
+   type        = string
+   default     = ""
+ }

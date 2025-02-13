@@ -59,9 +59,9 @@ variable "app_service_settings" {
   default     = {}
 }
 
-# Uncomment if using an App Service Environment:
-# variable "app_service_environment_id" {
-#   description = "ID of the App Service Environment (if applicable)"
-#   type        = string
-#   default     = ""
-# }
+
+ variable "app_service_environment_id" {
+   description = "ID of the App Service Environment (if applicable)"
+   type        = string
+   default     = ""
+ }

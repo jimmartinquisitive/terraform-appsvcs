@@ -14,5 +14,5 @@ resource "azurerm_app_service_plan" "azAppServicePlan" {
   maximum_elastic_worker_count = var.maximum_elastic_worker_count
 
   # This property links the plan to your existing App Service Environment
-  app_service_environment_id = data.azurerm_app_service_plan.azAppServicePlan.id
+   app_service_environment_id = var.app_service_environment_id
 }

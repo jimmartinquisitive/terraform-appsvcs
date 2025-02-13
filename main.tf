@@ -14,7 +14,8 @@ module "app_service_plan" {
   source = "./modules/app_service_plan"
 
   app_service_plan_name           = var.app_service_plan_name
-  app_service_plan_resource_group = var.app_service_plan_resource_group
+  app_service_plan_resource_group = module.resource_group.resource_group_name
+  app_service_plan_location       = module.resource_group.resource_group_location
   app_service_plan_sku_tier       = var.app_service_plan_sku_tier
   app_service_plan_sku_size       = var.app_service_plan_sku_size
   app_service_kind                = var.app_service_kind
@@ -31,6 +32,5 @@ module "app_service" {
   app_service_name                = var.app_service_name
   app_service_settings            = var.app_service_settings
   
-  # If applicable, pass app_service_environment_id:
-   app_service_environment_id = var.app_service_environment_id
+
 }
